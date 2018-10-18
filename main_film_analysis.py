@@ -67,7 +67,7 @@ for i in range(2):
 	binary_img = image > thresh
 	binary_img = morphology.binary_erosion(binary_img, morphology.square(1))
 
-	n_last_first[i], peak_position_i = film_ana.image_analysis(binary_img, last_first_img[i])
+	n_last_first[i], peak_position_i = film_ana.image_analysis(binary_img)
 
 print('Initial number of films: ', int(n_last_first[1] - n_last_first[0]))
 
@@ -93,18 +93,12 @@ for i in range(n_image):
 	binary_img = image > thresh
 	binary_img = morphology.binary_erosion(binary_img, morphology.square(1)) # Removes small particles
 
-	n_tot, peak_position_i = film_ana.image_analysis(binary_img, i) # Counts the number of films on the image
+	n_tot, peak_position_i = film_ana.image_analysis(binary_img) # Counts the number of films on the image
 	survival_function.append(n_tot) # Fills the survival_function array with the current number of films
 	time.append(i * time_conv) # Fills the time array with the current time
 
-	#all_film_position.append(peak_position_i)
-	if i != 0:
-		all_film_position = np.concatenate([all_film_position, peak_position_i], axis=0)
-	else:
-		all_film_position = peak_position_i
-
-	if (100 * i / n_image) % 5 == 0:
-		print(100 * (i+1) / n_image, '%')
+	all_film_position.append(peak_position_i) # Stacking the films positions as all_film_position[Image index][Tube ID][film position]
+	print(100 * (i+1) / n_image, '%')
 
 	#print(n_tot)
 	#io.imshow(binary_img)
@@ -115,7 +109,7 @@ survival_function = film_ana.survival_cleaning(survival_function)
 
 # Data saving
 np.savetxt('./' + exp_id  + '_survival_data.txt', np.transpose([time, survival_function]))
-np.savetxt('./' + exp_id  + '_position_data.txt', np.transpose([all_film_position[:,0], all_film_position[:,1], all_film_position[:,2] * length_conv]))
+np.save('./' + exp_id  + '_position_data', all_film_position) # ".npy" save as file
 
 # Survival function plotting
 plt.plot(time, survival_function, 'or-')

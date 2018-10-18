@@ -1,4 +1,5 @@
 import numpy as np
+import pandas as pd
 from scipy import signal
 
 class film_analysis:
@@ -116,15 +117,15 @@ class film_analysis:
 		return n_film, peak_position
 
 
-	def image_analysis(self, binary, image_nb):
+	def image_analysis(self, binary):
 		"""
-		Input: binary (matrix), image_nb (int).
+		Input: binary (matrix).
 		-----
 		Output: n_tot (int), all_tube_peak_position (array).
 		-----
-		Comment: Takes the full thresholded image, binary, loop over all tubes using
-		the self.tube_analysis function and returns the number of films in the image,
-		their positions and the time ([T, X, Y]).
+		Comment: Takes the full thresholded image (binary), loop over all tubes using
+		the self.tube_analysis function and returns the number of films in the image
+		along with their positions for each tube ([[y_0, ..., y_n], ..., [y_0, ..., y_n]]).
 		-----
 		"""
 		n_tot = 0
@@ -136,14 +137,7 @@ class film_analysis:
 			peak_right = signal.find_peaks_cwt(binary[:,int(self.h_position[i])-self.v_gap], np.arange(self.w_min, self.w_max))
 			n_film, peak_position = self.tube_analysis(peak_0, peak_left, peak_right)
 			n_tot += n_film
-			#all_tube_peak_position.append(peak_position)
-			slice_time = np.zeros(len(peak_position)) + self.time_conv * image_nb
-			x_position = np.zeros(len(peak_position)) + self.h_position[i]
-			peak_position = np.column_stack([slice_time, x_position, peak_position])
-			if i != 0:
-				all_tube_peak_position = np.concatenate([all_tube_peak_position, peak_position], axis=0)
-			else:
-				all_tube_peak_position = peak_position
+			all_tube_peak_position.append(peak_position)
 		return n_tot, all_tube_peak_position
 
 
